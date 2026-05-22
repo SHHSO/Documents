@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F&O Electronic Reporting Templates — Practical Walkthrough</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    line-height: 1.7;
+    padding: 0 0 80px 0;
+  }
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #1a1f2e 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 40px 24px 32px;
+    text-align: center;
+  }
+  .header h1 {
+    color: #e6edf3;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .header .subtitle {
+    color: #8b949e;
+    font-size: 15px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Navigation tabs */
+  .nav-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #30363d;
+    margin-top: 24px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav-tab {
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    color: #8b949e;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-tab:hover { color: #c9d1d9; }
+  .nav-tab.active {
+    color: #58a6ff;
+    border-bottom-color: #58a6ff;
+  }
+
+  /* Tab content */
+  .tab-content { display: none; padding: 32px 0; }
+  .tab-content.active { display: block; }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 24px;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 600px;
+  }
+  .arch-box {
+    padding: 14px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 120px;
+  }
+  .arch-box.model { background: #1f3a5f; border: 1px solid #388bfd; color: #79c0ff; }
+  .arch-box.mapping { background: #2a1f3f; border: 1px solid #a371f7; color: #d2a8ff; }
+  .arch-box.format { background: #1f3f2a; border: 1px solid #3fb950; color: #7ee787; }
+  .arch-box.template { background: #3f2a1f; border: 1px solid #d29922; color: #e3b341; }
+  .arch-arrow { color: #484f58; font-size: 20px; }
+
+  /* Steps */
+  .step {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .step.completed { border-color: #238636; }
+  .step.failed { border-color: #da3633; }
+  .step-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    gap: 12px;
+    user-select: none;
+  }
+  .step-header:hover { background: #1c2129; }
+  .step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #21262d;
+    border: 1px solid #30363d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #8b949e;
+    flex-shrink: 0;
+  }
+  .step.completed .step-number {
+    background: #238636;
+    border-color: #2ea043;
+    color: #ffffff;
+  }
+  .step-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: #e6edf3;
+  }
+  .step-expand {
+    color: #484f58;
+    font-size: 18px;
+    transition: transform 0.2s;
+  }
+  .step.open .step-expand { transform: rotate(90deg); }
+  .step-body {
+    display: none;
+    padding: 0 20px 20px 64px;
+    font-size: 14px;
+  }
+  .step.open .step-body { display: block; }
+
+  /* Sub-elements inside steps */
+  .nav-path {
+    background: #1c2129;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 13px;
+    color: #79c0ff;
+    margin: 10px 0;
+    word-break: break-all;
+  }
+  .gotcha {
+    background: #2d1b00;
+    border-left: 3px solid #d29922;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: #e3b341;
+  }
+  .gotcha strong { color: #f0c75e; }
+  .verify {
+    background: #0d2818;
+    border-left: 3px solid #238636;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: #7ee787;
+  }
+  .verify strong { color: #56d364; }
+  .fail-fix {
+    background: #2d0f0f;
+    border-left: 3px solid #da3633;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: #f08080;
+  }
+  .fail-fix strong { color: #f85149; }
+  .shortcut {
+    background: #0d1b2e;
+    border-left: 3px solid #58a6ff;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: #a5d6ff;
+  }
+
+  .step-body p { margin: 8px 0; }
+  .step-body ul { margin: 8px 0 8px 20px; }
+  .step-body li { margin: 4px 0; }
+  .step-body code {
+    background: #1c2129;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 12px;
+    color: #79c0ff;
+  }
+
+  /* Verification checkboxes */
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 6px 0;
+  }
+  .check-row input[type="checkbox"] {
+    margin-top: 4px;
+    accent-color: #238636;
+    cursor: pointer;
+  }
+
+  /* Concept blocks */
+  .concept {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 16px 0;
+  }
+  .concept h3 {
+    color: #e6edf3;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  .concept p { margin: 6px 0; font-size: 14px; }
+
+  /* Inline term */
+  .term {
+    color: #d2a8ff;
+    font-weight: 600;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: #238636;
+    z-index: 1000;
+    transition: width 0.3s;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #e6edf3;
+    margin: 24px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #21262d;
+  }
+  .section-desc {
+    color: #8b949e;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* Example block */
+  .example-block {
+    background: #0d1117;
+    border: 1px dashed #30363d;
+    border-radius: 6px;
+    padding: 16px;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .example-block .label {
+    color: #58a6ff;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  /* Table */
+  table.ref {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table.ref th {
+    background: #21262d;
+    color: #e6edf3;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid #30363d;
+  }
+  table.ref td {
+    padding: 10px 12px;
+    border: 1px solid #30363d;
+    vertical-align: top;
+  }
+  table.ref tr:nth-child(even) { background: #161b22; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #0d1117; }
+  ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+
+  @media (max-width: 640px) {
+    .arch-flow { flex-direction: column; min-width: unset; }
+    .arch-arrow { transform: rotate(90deg); }
+    .step-body { padding-left: 20px; }
+    .nav-tab { padding: 10px 14px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar" style="width: 0%"></div>
+
+<div class="header">
+  <h1>ER Templates in F&O</h1>
+  <div class="subtitle">Electronic Reporting — from zero to a working template-driven document. Every step verified.</div>
+</div>
+
+<div class="container">
+  <div class="nav-tabs" id="navTabs">
+    <button class="nav-tab active" data-tab="concepts">Concepts</button>
+    <button class="nav-tab" data-tab="prerequisites">Prerequisites</button>
+    <button class="nav-tab" data-tab="walkthrough">Walkthrough</button>
+    <button class="nav-tab" data-tab="binding">Template Binding</button>
+    <button class="nav-tab" data-tab="testing">Test & Debug</button>
+    <button class="nav-tab" data-tab="troubleshooting">Troubleshooting</button>
+    <button class="nav-tab" data-tab="reference">Reference</button>
+  </div>
+
+  <!-- ===== CONCEPTS TAB ===== -->
+  <div class="tab-content active" id="tab-concepts">
+    <div class="section-title">What ER Actually Is</div>
+
+    <div class="example-block">
+      <div class="label">The one-sentence version</div>
+      ER is F&O's built-in engine for generating outbound documents (invoices, reports, regulatory filings) and parsing inbound files (bank statements, e-invoices) — using a layered architecture of abstract data models, mappings to real F&O tables, format definitions, and Office templates.
+    </div>
+
+    <div class="concept">
+      <h3>Why it exists</h3>
+      <p>Before ER, document generation in AX/F&O was done via SSRS reports or X++ code. Both required a developer for every format change. ER lets a <em>functional consultant</em> modify templates (Excel/Word) without writing code. Microsoft also uses it as the vehicle for country-specific regulatory formats (tax declarations, e-invoicing) delivered through Globalization Studio.</p>
+      <p style="margin-top:8px;">You've already hit the edges of this — those ER format warnings on Sepura and the Gripple Tax Calculation Service issue both trace back to ER configurations that weren't set up in Globalization Studio.</p>
+    </div>
+
+    <div class="section-title">The Four-Layer Architecture</div>
+    <p>Every ER solution has exactly four layers. Miss one and nothing works. Here's the stack:</p>
+
+    <div class="arch-diagram">
+      <div class="arch-flow">
+        <div class="arch-box model">Data Model<br><span style="font-weight:400;font-size:11px;">Abstract schema</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box mapping">Model Mapping<br><span style="font-weight:400;font-size:11px;">Binds to F&O tables</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box format">Format<br><span style="font-weight:400;font-size:11px;">Output structure</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box template">Template<br><span style="font-weight:400;font-size:11px;">Excel / Word file</span></div>
+      </div>
+    </div>
+
+    <div class="concept">
+      <h3>Layer 1 — Data Model (Configuration)</h3>
+      <p>An abstract tree of fields and containers. Think of it as a contract: "this document needs an InvoiceHeader with fields Date, Number, CustomerName, and a child list of InvoiceLines each with Product, Qty, Amount." It knows nothing about F&O tables — it's purely logical.</p>
+      <p>You almost never build this from scratch. Microsoft provides standard data models (e.g. "Invoice model", "Payment model"). You <em>derive</em> from them.</p>
+    </div>
+
+    <div class="concept">
+      <h3>Layer 2 — Model Mapping</h3>
+      <p>This is where abstract meets concrete. The mapping says: "InvoiceHeader.CustomerName = <code>CustTable.Name</code>, InvoiceLines comes from <code>CustInvoiceTrans</code>." It's the equivalent of a SSRS dataset, but declarative rather than SQL.</p>
+      <p>Multiple mappings can exist for one data model — e.g. one for "real" F&O data, one for "sample" test data. The system picks the right one at runtime based on the <span class="term">Integration Point</span>.</p>
+    </div>
+
+    <div class="concept">
+      <h3>Layer 3 — Format</h3>
+      <p>Defines the structure of the output file. For an Excel template, it says: "there is a sheet called 'Invoice', with a named range 'Header' and a repeating range 'Lines'." For XML/JSON formats (e-invoicing), it defines the element tree. The format binds to the data model (not to F&O tables directly).</p>
+    </div>
+
+    <div class="concept">
+      <h3>Layer 4 — Template</h3>
+      <p>The actual .xlsx or .docx file. In Excel, you use <strong>Named Ranges</strong> that the Format component references. In Word, you use <strong>Content Controls</strong>. This is the bit your functional consultants can edit without touching ER at all — swap the template file, keep the bindings.</p>
+    </div>
+
+    <div class="concept">
+      <h3>The "Configuration" wrapper</h3>
+      <p>All four layers are packaged as <span class="term">ER Configurations</span>. Each configuration has a type: Data model, Model mapping, or Format. They have versions (Draft → Completed → Shared) and they sit in a <span class="term">Configuration Provider</span> (your organisation) inside a <span class="term">Repository</span> (either the Global repo managed by Microsoft, or a local one). The versioning model is similar to solution layering in CE — you derive/extend, you don't edit the base.</p>
+    </div>
+
+    <div class="gotcha">
+      <strong>Key mental model:</strong> Think of it like CE solution layering. Microsoft publishes base configurations via the Global repository. You create a <em>derived</em> version under your own provider. Your derived version inherits all the bindings and structure — you only override what you need. Never edit a Microsoft-published configuration directly (you can't anyway, it'll be read-only).
+    </div>
+  </div>
+
+  <!-- ===== PREREQUISITES TAB ===== -->
+  <div class="tab-content" id="tab-prerequisites">
+    <div class="section-title">Before You Touch Anything</div>
+    <div class="section-desc">These must be done once per environment. If they're already done, skip — but verify they are.</div>
+
+    <div class="step" data-step="p1">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">1</div>
+        <div class="step-title">Create or verify your Configuration Provider</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>A Configuration Provider is your organisation's identity in the ER framework. Every configuration you create or derive is owned by a provider.</p>
+        <div class="nav-path">Organization administration → Electronic reporting → Configuration providers</div>
+        <p>If <code>HSO</code> (or your org) already appears in the list, click it and verify the Internet address (just a URL identifier — e.g. <code>https://www.hso.com</code>). Then click <strong>Set active</strong> on the Action Pane.</p>
+        <p>If it doesn't exist: <strong>New</strong> → Name: your org, Internet address: your org URL → Save → <strong>Set active</strong>.</p>
+        <div class="verify">
+          <strong>Verification:</strong> The provider tile at the top of the ER workspace (next step) shows your provider name. If it says "Litware" or "Microsoft" you haven't set your provider active.
+        </div>
+        <div class="gotcha">
+          <strong>First-attempt mistake:</strong> People skip this step, then wonder why they can't edit configurations. ER will let you browse Microsoft's configs but you can't create or derive anything without an active provider that belongs to you.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Provider exists and is set as Active</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="p2">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">2</div>
+        <div class="step-title">Connect to the Global Repository</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <div class="nav-path">Organization administration → Electronic reporting → Reporting configurations</div>
+        <p>This opens the <strong>ER Workspace</strong> — the configuration tree. On the Action Pane, look for <strong>Repositories</strong>.</p>
+        <p>Click <strong>Repositories</strong>. You should see a row for "Global". If not, click <strong>Add</strong> → select <strong>Global</strong> → Save. Then click <strong>Open</strong> on the Global repository row.</p>
+        <p>This connects your environment to Microsoft's centrally-published configuration library (hosted in RCS — Regulatory Configuration Service, now folded into Globalization Studio). This is where all the standard data models, mappings, and formats live.</p>
+        <div class="verify">
+          <strong>Verification:</strong> After clicking Open, you see a massive tree of configurations (hundreds). Filter by name to find something like "Invoice model" — if you see it with Microsoft as the provider, you're connected.
+        </div>
+        <div class="gotcha">
+          <strong>Gotcha:</strong> In some locked-down environments (especially Tier-1 dev boxes), the Global repo connection may fail with a LCS/RCS credential error. This means the environment isn't linked to LCS properly. You'll need the sysadmin to verify the LCS project linkage in System administration → Setup → Lifecycle Services parameters. This is an environment config issue, not an ER issue.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Global repository accessible, can browse Microsoft configurations</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="p3">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">3</div>
+        <div class="step-title">Import the base configurations you need</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Inside the Global repository, find the base Data Model and Format you want to extend. Example: if you're building a custom invoice, search for <code>Invoice model</code>.</p>
+        <p>Select the configuration → click <strong>Import</strong>. This brings it into your local environment. Repeat for the Model Mapping and any Format you plan to derive from.</p>
+        <div class="shortcut">
+          <strong>Shortcut:</strong> When you import a Format, F&O will auto-import all parent dependencies (the Data Model and Model Mapping it depends on). So if you know the exact Format you want, just import that one and let the system pull the chain.
+        </div>
+        <div class="gotcha">
+          <strong>Version matters:</strong> Always import the <em>latest completed version</em>. The Global repo shows all versions; pick the one with the highest version number and status "Completed" or "Shared". Do NOT import Draft versions — they may be incomplete and you'll get binding errors downstream.
+        </div>
+        <div class="verify">
+          <strong>Verification:</strong> Close the repository. Back in the Configurations tree, you should now see the imported config(s) with Microsoft as the provider. Expand the tree — the Data Model should show child Model Mapping and Format nodes.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Base configurations imported into local environment</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="p4">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">4</div>
+        <div class="step-title">Understand the Globalization Studio link (context only)</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Since ~2023, Microsoft has been consolidating RCS and the Tax Calculation Service under <strong>Globalization Studio</strong>, accessible as a workspace in F&O. The ER configurations tree still works the old way, but new regulatory features (like the Tax Calculation feature that bit Gripple) are managed through Globalization Studio → Features.</p>
+        <p>For template work specifically, you stay in the classic ER workspace. Globalization Studio matters when you're <em>activating</em> country-specific features that reference ER formats — but the template creation workflow itself hasn't moved.</p>
+        <div class="gotcha">
+          <strong>Naming confusion:</strong> Microsoft documentation freely mixes "ER", "GER" (legacy name: Generic Electronic Reporting), "RCS", "Globalization Studio", and "Globalization features". They all refer to parts of the same system. ER = the engine. RCS/Global repo = the delivery mechanism. Globalization Studio = the newer unified workspace. For template creation, just use the ER workspace.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Understand the relationship — no action needed</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== WALKTHROUGH TAB ===== -->
+  <div class="tab-content" id="tab-walkthrough">
+    <div class="section-title">Creating a Custom ER Format with Template</div>
+    <div class="section-desc">This walks through the most common scenario: you have a Microsoft base format and you want to customise the output (layout, fields, branding) by creating a derived format with your own Excel/Word template.</div>
+
+    <div class="example-block">
+      <div class="label">Running example</div>
+      We'll derive a custom Free Text Invoice format. This is the most common first ER project — it's well-documented, the base config is robust, and the result is immediately testable. Everything here applies identically to Sales Invoices, Packing Slips, Purchase Orders, etc.
+    </div>
+
+    <div class="step" data-step="w1">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">1</div>
+        <div class="step-title">Create a Derived Format configuration</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <div class="nav-path">Organization administration → Electronic reporting → Reporting configurations</div>
+        <p>In the configuration tree, find and select the Microsoft-published format you want to customise. E.g. expand <code>Invoice model</code> → find <code>Free text invoice (Excel)</code>.</p>
+        <p>With that format selected, click <strong>Create configuration</strong> on the Action Pane.</p>
+        <p>In the dialog, select: <strong>"Derive from Name: Free text invoice (Excel), Microsoft"</strong>.</p>
+        <p>Give it a name: e.g. <code>Free text invoice (Excel) - HSO Custom</code>.</p>
+        <p>Description: whatever helps you. Click <strong>Create configuration</strong>.</p>
+
+        <div class="gotcha">
+          <strong>The trap:</strong> If "Create configuration" only shows "New" (not "Derive from..."), you either haven't selected a Format-type configuration, or your active provider isn't set. Go back to Prerequisites step 1.
+        </div>
+
+        <div class="verify">
+          <strong>Verification:</strong> Your new config appears as a child node under the Microsoft one, with YOUR provider name, and version <code>1 Draft</code>. The status "Draft" is critical — it means you can edit it.
+        </div>
+
+        <div class="shortcut">
+          <strong>Pro tip:</strong> The derived config inherits ALL bindings from the parent. This is the whole point — you get a fully working format immediately, then only change what you need. If you create from scratch ("New"), you have to build every binding manually, which is days of work vs minutes.
+        </div>
+
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Derived format created with Draft status under my provider</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="w2">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">2</div>
+        <div class="step-title">Open the Format Designer</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>With your new derived config selected, click <strong>Designer</strong> on the Action Pane (or click into the version row and then Designer).</p>
+        <p>This opens the <strong>Format Designer</strong> — the core ER authoring surface. You'll see:</p>
+        <ul>
+          <li><strong>Left pane — Format tree:</strong> The structural hierarchy of the output file. For Excel, this is Sheets → Named Ranges → Cells. For Word, it's Content Controls.</li>
+          <li><strong>Right pane — Data model tree:</strong> The abstract data model this format is bound to. These are the fields available for binding.</li>
+          <li><strong>Bottom pane — Binding details:</strong> Shows which data model field is bound to which format element.</li>
+        </ul>
+        <p>Because you derived, the tree is already populated with all the parent's structure and bindings. Everything is greyed/inherited — you override specific elements.</p>
+
+        <div class="verify">
+          <strong>Verification:</strong> You can see format elements in the left tree (e.g. "Report → Invoice → Header → InvoiceNumber"). If the tree is empty, you created a "New" format instead of deriving. Delete it and redo step 1.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Format Designer open with inherited structure visible</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="w3">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">3</div>
+        <div class="step-title">Export the current template</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Before editing, extract the existing template so you have a working baseline.</p>
+        <p>In the Format Designer, on the <strong>Format</strong> tab of the Action Pane, click <strong>Import/Export → Export to Excel</strong> (or the template attachment area — look for a paperclip icon or "Attachments" depending on your version).</p>
+
+        <div class="shortcut">
+          <strong>Faster path:</strong> In the Format tree, select the root element (e.g. "Excel"). In the properties on the right, look for <strong>Template</strong>. There should be an attachment — click it to download the .xlsx/.docx. The exact UI for this has shifted between versions — in newer builds it's under <strong>Format → Template → Edit</strong> in the ribbon, which opens the template in a browser-based editor or gives you a download option.
+        </div>
+
+        <div class="gotcha">
+          <strong>Critical nuance:</strong> There are two things people confuse: the <em>Format structure</em> (the tree in the designer) and the <em>Template file</em> (the actual Excel/Word doc). The template is attached to the format. When you modify the template, you're changing the <em>visual layout</em>. When you modify the format tree, you're changing the <em>data binding logic</em>. Most customisations involve both.
+        </div>
+
+        <p>Save this downloaded template somewhere safe. Open it in Excel. You'll see:</p>
+        <ul>
+          <li>Named ranges (check Formulas → Name Manager in Excel) — these are the anchor points ER uses</li>
+          <li>Placeholder text or sample values in cells</li>
+          <li>The visual layout that will become your output document</li>
+        </ul>
+
+        <div class="verify">
+          <strong>Verification:</strong> Open the downloaded .xlsx in Excel. Go to Formulas → Name Manager. You should see named ranges like <code>ReportHeader</code>, <code>InvoiceLine</code>, etc. These correspond to the format tree elements.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Template exported, named ranges visible in Excel Name Manager</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="w4">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">4</div>
+        <div class="step-title">Modify the Excel template</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Now edit the template in Excel. Common changes:</p>
+        <ul>
+          <li><strong>Add your company logo</strong> — insert an image in the header area</li>
+          <li><strong>Rearrange columns</strong> — move cells around within existing named ranges</li>
+          <li><strong>Add new cells for new fields</strong> — if you want to expose a data model field not currently in the template</li>
+          <li><strong>Change fonts, colours, formatting</strong> — purely visual, no ER impact</li>
+          <li><strong>Add/rename named ranges</strong> — only if you need new repeating sections</li>
+        </ul>
+
+        <div class="gotcha">
+          <strong>The Named Range Rule:</strong> ER binds to named ranges, not cell addresses. If you add a new cell and want ER to populate it, you MUST either: (a) place it inside an existing named range, or (b) create a new named range for it and then add a matching element in the Format tree. If you just put a cell somewhere without a named range, ER won't touch it — it'll be static text.
+        </div>
+
+        <div class="gotcha">
+          <strong>Repeating ranges:</strong> For line items (invoice lines, etc.), the named range defines the "template row" that ER will repeat. If you break this named range (e.g. merge cells across it, extend it incorrectly), ER will either crash or produce garbled output. Always test with multi-line data.
+        </div>
+
+        <div class="shortcut">
+          <strong>Minimal viable change:</strong> For your first time, just change a font colour or add a static text label. Prove the round-trip works before doing anything ambitious.
+        </div>
+
+        <div class="fail-fix">
+          <strong>Common first-attempt failure:</strong> Editing the template in LibreOffice or Google Sheets. <em>Don't.</em> ER templates must be edited in desktop Excel. Other editors can corrupt named range definitions or change the internal XML structure of the .xlsx in ways that break ER's parser. Use proper Excel.
+        </div>
+
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Template modified in desktop Excel, saved as .xlsx</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="w5">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">5</div>
+        <div class="step-title">Upload the modified template</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Back in F&O, in the Format Designer, replace the template:</p>
+        <p>Select the root element in the format tree (e.g. "Excel"). In the Action Pane or right-click context menu, look for <strong>Format → Template → Import from Excel</strong> or the <strong>Attachments</strong> button. Upload your modified .xlsx.</p>
+
+        <div class="gotcha">
+          <strong>Version mismatch:</strong> If you added/removed named ranges in Excel, the Format Designer will flag mismatches. New named ranges in the template → you'll see warnings about unbound ranges. Removed ranges → errors about missing template elements. Both are fine — you resolve them in the next step (binding). But if you see <em>"Template structure cannot be matched"</em>, you likely corrupted the file structure — re-export and start the template edit again.
+        </div>
+
+        <p>After upload, the format tree may update to reflect new named ranges. Inherited elements from the parent that are unchanged stay as-is.</p>
+
+        <div class="verify">
+          <strong>Verification:</strong> The template attachment timestamp updates. If you added a new named range, you should see a corresponding new element (or warning) in the format tree.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Modified template uploaded, no structural errors</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BINDING TAB ===== -->
+  <div class="tab-content" id="tab-binding">
+    <div class="section-title">Binding — Connecting Template Cells to Data</div>
+    <div class="section-desc">This is where most people stall. The binding UI is powerful but unintuitive. Take it slow.</div>
+
+    <div class="step" data-step="b1">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">1</div>
+        <div class="step-title">Understand the binding model</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Binding connects a <strong>format element</strong> (left tree — a cell in your template) to a <strong>data model node</strong> (right tree — an abstract field). The chain is:</p>
+        <p style="text-align:center; padding: 12px 0;">
+          <code>Template Cell ← Format Element ← Data Model Node ← Model Mapping ← F&O Table.Field</code>
+        </p>
+        <p>When you derived the format, all existing bindings came with it. You only need to bind new elements (cells you added to the template).</p>
+
+        <div class="concept">
+          <h3>Binding types you'll encounter</h3>
+          <p><strong>Simple binding:</strong> Format element → Data model field. E.g. Cell "InvoiceDate" → model.InvoiceHeader.Date.</p>
+          <p><strong>Calculated field:</strong> Instead of binding to a model field, you write a formula using ER's expression language (similar to Excel formulas). E.g. <code>FORMAT(model.InvoiceHeader.Date, "dd/MM/yyyy")</code>.</p>
+          <p><strong>Sequence/List binding:</strong> A container element bound to a list in the data model. ER iterates it. This is how line items repeat.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" data-step="b2">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">2</div>
+        <div class="step-title">Bind a new cell to an existing data model field</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>In the Format Designer:</p>
+        <ol style="margin-left:20px;">
+          <li>Select the new format element in the left tree (the one created when you uploaded the template with a new named range/cell)</li>
+          <li>In the right tree (Data model), expand to find the field you want</li>
+          <li>Click <strong>Bind</strong> on the Action Pane (or drag the model field onto the format element — UI behaviour varies by version)</li>
+        </ol>
+
+        <div class="gotcha">
+          <strong>Can't find the field?</strong> The data model is abstract — it only exposes what Microsoft (or whoever built the model) put there. If the F&O field you want isn't in the data model tree, you have two options:<br>
+          (a) Create a <strong>Calculated field</strong> in the Format that queries it via ER functions — this is limited to what ER functions support.<br>
+          (b) Extend the <strong>Model Mapping</strong> — derive the model mapping config and add a new datasource/field that pulls from the F&O table you need. This is the deeper approach but it works for anything.
+        </div>
+
+        <div class="verify">
+          <strong>Verification:</strong> Select the format element. The bottom pane should show the binding — the data model path it's connected to. If it says "Not bound" or shows nothing, the binding didn't take.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>New cell bound to data model field, binding visible in bottom pane</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="b3">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">3</div>
+        <div class="step-title">Write a calculated field / formula (if needed)</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>If you need to transform data (format a date, concatenate strings, do math), use a calculated field.</p>
+        <p>Select the format element → instead of binding to the model tree, click <strong>Edit formula</strong> (or <strong>fx</strong> button) at the bottom of the binding pane.</p>
+        <p>This opens the <strong>Formula Designer</strong>. The expression language is ER-specific (not X++, not C#):</p>
+
+        <table class="ref">
+          <tr><th>Need</th><th>ER Expression</th></tr>
+          <tr><td>Format a date</td><td><code>DATETIMEFORMAT(model.Header.Date, "dd-MMM-yyyy")</code></td></tr>
+          <tr><td>Concatenate strings</td><td><code>CONCATENATE(model.Header.InvNum, " - ", model.Header.CustName)</code></td></tr>
+          <tr><td>Conditional value</td><td><code>IF(model.Header.Amount > 1000, "High", "Standard")</code></td></tr>
+          <tr><td>Sum of line amounts</td><td><code>SUMIF(model.Lines, model.Lines.Amount, true)</code></td></tr>
+          <tr><td>Current date/time</td><td><code>SESSIONTODAY()</code></td></tr>
+        </table>
+
+        <div class="shortcut">
+          <strong>Built-in functions list:</strong> In the formula editor, the left panel shows all available functions grouped by category. Use the search. Microsoft's full ER function reference: search for "ER formula designer" in Learn docs — it's a long but complete reference.
+        </div>
+
+        <div class="fail-fix">
+          <strong>Common failure:</strong> The formula editor validates on save. If it won't save, the syntax is wrong. The most frequent cause: wrong function name or wrong argument count. ER's function names are NOT the same as Excel's in many cases. <code>TEXT()</code> doesn't exist — use <code>DATETIMEFORMAT()</code> or <code>NUMBERFORMAT()</code>.
+        </div>
+
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Formula validates and saves without errors</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="b4">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">4</div>
+        <div class="step-title">Validate the format</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>In the Format Designer, click <strong>Validate</strong> on the Action Pane. This checks:</p>
+        <ul>
+          <li>All format elements are either bound or explicitly marked as "not bound" (suppressed)</li>
+          <li>Formula syntax is valid</li>
+          <li>Template structure matches format tree</li>
+          <li>No circular references</li>
+        </ul>
+
+        <div class="gotcha">
+          <strong>Warnings vs Errors:</strong> Warnings (yellow) are informational — the format will still run. You saw these on Sepura (shared model noise). Errors (red) are blocking — you can't complete the version until they're fixed. Read the error messages carefully — they're verbose but usually point to the exact element.
+        </div>
+
+        <div class="verify">
+          <strong>Verification:</strong> Validation returns 0 errors. Warnings are acceptable (note them, understand them, but they won't block you).
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Validation passed (0 errors)</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="b5">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">5</div>
+        <div class="step-title">Complete the version</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Close the designer. Back in the Configurations tree, select your derived format. On the Action Pane, click <strong>Change status → Complete</strong>.</p>
+        <p>This moves the version from Draft to Completed. A Completed version is read-only but runnable. You must complete the version before it can be used in production.</p>
+
+        <div class="shortcut">
+          <strong>During development:</strong> You can run a Draft version for testing — you don't have to complete it first. But in a production scenario, it must be Completed. Draft → test → fix → Draft again if needed (create new version) → Complete when ready.
+        </div>
+
+        <div class="gotcha">
+          <strong>Can't uncomplete:</strong> Once Completed, that version is locked. If you need to edit, you create a new version (it copies the completed one) which starts as Draft. The version numbering increments automatically.
+        </div>
+
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Version status changed to Completed (or staying Draft for testing)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TESTING TAB ===== -->
+  <div class="tab-content" id="tab-testing">
+    <div class="section-title">Testing Your Template</div>
+
+    <div class="step" data-step="t1">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">1</div>
+        <div class="step-title">Assign the format to the document type</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Your format exists but F&O doesn't know to <em>use</em> it yet. You need to assign it as the active format for the relevant business document.</p>
+        <div class="nav-path">Organization administration → Electronic reporting → Electronic reporting destination (or: Document configuration)</div>
+        <p>The exact path depends on the document type. For Free Text Invoices specifically:</p>
+        <div class="nav-path">Accounts receivable → Setup → Forms → Form setup → General tab</div>
+        <p>Look for the section that specifies which ER format to use for Free Text Invoices. Select your derived format from the dropdown.</p>
+
+        <div class="gotcha">
+          <strong>This varies by document type.</strong> Each business document (invoice, packing slip, bank statement, etc.) has its own setup location for assigning the ER format. There's no single universal place. The Pattern: go to the module's Form setup or Print management, find the document, and look for an ER format assignment field. For invoices, it's in AR. For purchase orders, it's in AP. For bank statements (inbound), it's in Cash and bank management. Microsoft's docs list the specific paths for each.
+        </div>
+
+        <div class="shortcut">
+          <strong>Alternative path — Print Management:</strong> For most outbound documents, you can also assign ER formats via Print Management (module → Setup → Forms → Form setup → Print Management). Print Management lets you set different formats per customer/vendor, per document type, etc. — more flexible than the global assignment.
+        </div>
+
+        <div class="verify">
+          <strong>Verification:</strong> The dropdown shows your custom format name. If it doesn't appear in the dropdown, either: (a) the version isn't Completed (some assignment paths require Completed), or (b) the format's data model type doesn't match what the document expects — you derived from the wrong parent.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Custom format assigned to the business document</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="t2">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">2</div>
+        <div class="step-title">Run a test document</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p>Create or find an existing business document (e.g. a Free Text Invoice) and print/generate it.</p>
+        <p>For Free Text Invoices: go to <strong>Accounts receivable → Invoices → All free text invoices</strong>. Pick one (or create a test one). Click <strong>Print → Selected</strong>.</p>
+        <p>F&O will use your assigned ER format to generate the output file. The result is typically a file download (Excel or PDF depending on format settings).</p>
+
+        <div class="gotcha">
+          <strong>First-run failures:</strong> The most common output on first attempt is an error in the infolog. Read it. The two most frequent causes:<br>
+          1. <strong>Binding error:</strong> "Cannot evaluate expression..." — a formula references a field that's null or the wrong type. Fix the formula.<br>
+          2. <strong>Template structure error:</strong> "Named range X not found" — you renamed/deleted a range in Excel that the format tree still references. Re-sync.
+        </div>
+
+        <div class="verify">
+          <strong>Verification:</strong> A file downloads. Open it. Your custom branding/layout appears. Data from the actual invoice populates the fields. Check the line items section — verify it repeats correctly for multi-line invoices.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Output document generated with correct data and layout</span></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="t3">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">3</div>
+        <div class="step-title">Configure ER Destinations (optional but recommended)</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <div class="nav-path">Organization administration → Electronic reporting → Electronic reporting destination</div>
+        <p>ER Destinations control <em>where</em> the generated document goes. Options include:</p>
+        <ul>
+          <li><strong>Screen:</strong> Opens in browser (default for most formats)</li>
+          <li><strong>Email:</strong> Auto-sends as attachment — useful for invoice emailing workflows</li>
+          <li><strong>File/Archive:</strong> Saves to Azure Blob or SharePoint</li>
+          <li><strong>Printer:</strong> Direct to network printer</li>
+        </ul>
+        <p>Click <strong>New</strong>. Select your format configuration. Then configure destinations per output component.</p>
+
+        <div class="shortcut">
+          <strong>For testing:</strong> Leave the default (Screen). Only configure email/file destinations when you're ready for UAT or production.
+        </div>
+        <div class="check-row"><input type="checkbox" onchange="updateProgress()"> <span>Destinations configured (or left as default for testing)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TROUBLESHOOTING TAB ===== -->
+  <div class="tab-content" id="tab-troubleshooting">
+    <div class="section-title">What Goes Wrong and How to Fix It</div>
+
+    <div class="concept">
+      <h3>ER Trace — your diagnostic superweapon</h3>
+      <p>Before debugging anything, turn on ER tracing:</p>
+      <div class="nav-path">Organization administration → Electronic reporting → Reporting configurations → User parameters (Action Pane) → Turn on "Run in debug mode" / "Trace"</div>
+      <p>Run the document again. Then go to <strong>Configurations → Action Pane → Logs → Execution logs</strong>. This gives you a step-by-step trace of every binding evaluation, every data query, and every template write. It's verbose but it tells you <em>exactly</em> where the failure occurred.</p>
+    </div>
+
+    <div class="step" data-step="f1">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">!</div>
+        <div class="step-title">"Configuration not found" when assigning format</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p><strong>Cause:</strong> The format's data model root definition doesn't match what the business document expects. Each document type is hard-coded to look for a specific data model root (e.g. "InvoiceBase").</p>
+        <p><strong>Fix:</strong> You derived from the wrong parent format. Go back to the Global repository, find the correct format for your document type, and derive from that instead.</p>
+      </div>
+    </div>
+
+    <div class="step" data-step="f2">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">!</div>
+        <div class="step-title">"Template validation failed" on upload</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p><strong>Cause:</strong> The uploaded .xlsx has structural differences the format can't reconcile. Often caused by:</p>
+        <ul>
+          <li>Editing in LibreOffice/Google Sheets (different internal XML)</li>
+          <li>Saving as .xls instead of .xlsx</li>
+          <li>Breaking a named range by deleting rows/columns it spans</li>
+          <li>Password-protecting the workbook or sheets</li>
+        </ul>
+        <p><strong>Fix:</strong> Re-export the original template, redo your edits in desktop Excel, ensure .xlsx format, no protection. Verify named ranges are intact in Name Manager before uploading.</p>
+      </div>
+    </div>
+
+    <div class="step" data-step="f3">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">!</div>
+        <div class="step-title">Output generates but data is blank/missing</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p><strong>Cause:</strong> Binding exists but the data model node is null at runtime. This means the Model Mapping isn't pulling the data.</p>
+        <p><strong>Fix path:</strong></p>
+        <ol style="margin-left:20px;">
+          <li>Enable ER trace and re-run</li>
+          <li>In the trace, find the binding evaluation for the blank cell</li>
+          <li>Check if the data model field received a value (it'll show "null" or empty)</li>
+          <li>If null: the issue is in the Model Mapping. Open the Model Mapping designer, find the datasource for that field, and verify the query/join/filter is correct</li>
+          <li>Common sub-cause: the model mapping has a filter (e.g. by legal entity) that doesn't match your test data</li>
+        </ol>
+        <div class="gotcha">
+          <strong>The classic:</strong> You run it in company USMF but the test invoice is in company DAT. ER runs in the context of the current legal entity. Switch companies.
+        </div>
+      </div>
+    </div>
+
+    <div class="step" data-step="f4">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">!</div>
+        <div class="step-title">Repeating rows only show one row</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p><strong>Cause:</strong> The named range in Excel covers only one row (correct for the template — it's the template row). But the format element's <strong>Replication</strong> property isn't set to the list binding.</p>
+        <p><strong>Fix:</strong> In the format tree, select the repeating element (e.g. "InvoiceLine"). Check its properties — there should be a "Collection" or "Replication" setting bound to the data model's list node. If it's bound to a single record instead of a list, it'll only render once.</p>
+      </div>
+    </div>
+
+    <div class="step" data-step="f5">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">!</div>
+        <div class="step-title">Format warnings about "shared model configurations"</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p><strong>Cause:</strong> Multiple format configurations reference the same data model, and they have different version requirements. This is the noise you saw before on Sepura — it's the ER equivalent of shared dependency warnings.</p>
+        <p><strong>Fix:</strong> Usually ignorable. These are warnings, not errors. They mean: "format A expects model version 50 but format B expects version 52." As long as the model versions are backward-compatible (which Microsoft's almost always are), it works fine. The warnings go away if you rebase all formats to the same model version.</p>
+      </div>
+    </div>
+
+    <div class="step" data-step="f6">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-number">!</div>
+        <div class="step-title">Performance — document takes minutes to generate</div>
+        <div class="step-expand">▸</div>
+      </div>
+      <div class="step-body">
+        <p><strong>Cause:</strong> ER's data model queries are not optimized by default. Each binding can trigger a database round-trip. A format with 50 bound cells and 200 line items = 10,000 queries if done naively.</p>
+        <p><strong>Fix:</strong></p>
+        <ul>
+          <li>Use <strong>ALLITEMS</strong> or <strong>ALLITEMSQUERY</strong> functions to batch-load lists instead of lazy-loading</li>
+          <li>In the Model Mapping, ensure datasources use <strong>Join</strong> instead of nested lookups where possible</li>
+          <li>Enable <strong>ER caching</strong> (available in newer versions) for frequently-read reference data</li>
+          <li>Check ER trace for repeated identical queries — that's the smoking gun</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REFERENCE TAB ===== -->
+  <div class="tab-content" id="tab-reference">
+    <div class="section-title">Quick Reference</div>
+
+    <div class="concept">
+      <h3>Excel Template Rules</h3>
+      <table class="ref">
+        <tr><th>Rule</th><th>Detail</th></tr>
+        <tr><td>File format</td><td>.xlsx only. Not .xls, not .xlsm.</td></tr>
+        <tr><td>Editor</td><td>Desktop Excel only. Not LibreOffice, not Google Sheets, not Excel Online.</td></tr>
+        <tr><td>Named ranges</td><td>Every cell ER should populate must be inside a named range. The range name must match the format tree element name.</td></tr>
+        <tr><td>Repeating sections</td><td>One-row named ranges. ER clones the row. Don't merge cells across the range boundary.</td></tr>
+        <tr><td>Images</td><td>Supported via the "Image" format element type. Place a placeholder image in the template cell; ER replaces it at runtime.</td></tr>
+        <tr><td>Sheets</td><td>Multi-sheet templates work. Each sheet needs its own named ranges and format tree mapping.</td></tr>
+        <tr><td>Macros</td><td>Not supported. ER strips VBA on generation.</td></tr>
+      </table>
+    </div>
+
+    <div class="concept">
+      <h3>Word Template Rules</h3>
+      <table class="ref">
+        <tr><th>Rule</th><th>Detail</th></tr>
+        <tr><td>File format</td><td>.docx only.</td></tr>
+        <tr><td>Binding mechanism</td><td>Content Controls (not merge fields, not bookmarks). Developer tab → insert content controls.</td></tr>
+        <tr><td>Repeating sections</td><td>Repeating Section content controls. Available in Word's Developer tab.</td></tr>
+        <tr><td>Images</td><td>Picture Content Controls as placeholders.</td></tr>
+        <tr><td>Tables</td><td>Place content controls inside table cells. Rows repeat via repeating section wrapping the row.</td></tr>
+      </table>
+    </div>
+
+    <div class="concept">
+      <h3>Version Lifecycle</h3>
+      <table class="ref">
+        <tr><th>Status</th><th>Editable?</th><th>Runnable?</th><th>Can assign?</th></tr>
+        <tr><td>Draft</td><td>Yes</td><td>Yes (test only)</td><td>Sometimes (depends on assignment path)</td></tr>
+        <tr><td>Completed</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td>Shared</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+      </table>
+    </div>
+
+    <div class="concept">
+      <h3>Common ER Functions</h3>
+      <table class="ref">
+        <tr><th>Function</th><th>Use</th></tr>
+        <tr><td><code>FORMAT(value, pattern)</code></td><td>Numeric formatting. <code>FORMAT(1234.5, "N2")</code> → "1,234.50"</td></tr>
+        <tr><td><code>DATETIMEFORMAT(dt, fmt)</code></td><td>Date formatting. <code>DATETIMEFORMAT(x, "yyyy-MM-dd")</code></td></tr>
+        <tr><td><code>CONCATENATE(a, b, ...)</code></td><td>String join</td></tr>
+        <tr><td><code>IF(cond, true, false)</code></td><td>Conditional</td></tr>
+        <tr><td><code>CASE(expr, val1, res1, ...)</code></td><td>Switch/case</td></tr>
+        <tr><td><code>WHERE(list, condition)</code></td><td>Filter a list (executes in app, not SQL)</td></tr>
+        <tr><td><code>FILTER(list, condition)</code></td><td>Filter a list (translates to SQL — much faster)</td></tr>
+        <tr><td><code>ORDERBY(list, field, dir)</code></td><td>Sort</td></tr>
+        <tr><td><code>COUNT(list)</code></td><td>List count</td></tr>
+        <tr><td><code>SUMIF(list, field, cond)</code></td><td>Conditional sum</td></tr>
+        <tr><td><code>SESSIONTODAY()</code></td><td>Current date</td></tr>
+        <tr><td><code>SESSIONNOW()</code></td><td>Current datetime</td></tr>
+        <tr><td><code>NUMBERFORMAT(num, fmt)</code></td><td>Number to string with format</td></tr>
+        <tr><td><code>TEXT(value)</code></td><td>Convert to string</td></tr>
+        <tr><td><code>INTVALUE(string)</code></td><td>String to integer</td></tr>
+        <tr><td><code>REALVALUE(string)</code></td><td>String to decimal</td></tr>
+      </table>
+    </div>
+
+    <div class="concept">
+      <h3>Key Navigation Paths</h3>
+      <table class="ref">
+        <tr><th>Destination</th><th>Path</th></tr>
+        <tr><td>ER Workspace</td><td>Org admin → Electronic reporting → Configurations</td></tr>
+        <tr><td>Configuration providers</td><td>Org admin → Electronic reporting → Configuration providers</td></tr>
+        <tr><td>Global repository</td><td>ER Workspace → Repositories → Global → Open</td></tr>
+        <tr><td>ER Destinations</td><td>Org admin → Electronic reporting → ER destination</td></tr>
+        <tr><td>User parameters (tracing)</td><td>ER Workspace → Configurations → User parameters</td></tr>
+        <tr><td>Execution logs</td><td>ER Workspace → Configurations → Logs → Execution logs</td></tr>
+        <tr><td>Globalization Studio</td><td>Workspaces → Globalization Studio</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.nav-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Step expand/collapse
+  function toggleStep(header) {
+    var step = header.parentElement;
+    step.classList.toggle('open');
+  }
+
+  // Progress tracking
+  function updateProgress() {
+    var total = document.querySelectorAll('.check-row input[type="checkbox"]').length;
+    var checked = document.querySelectorAll('.check-row input[type="checkbox"]:checked').length;
+    var pct = total > 0 ? (checked / total * 100) : 0;
+    document.getElementById('progressBar').style.width = pct + '%';
+
+    // Mark parent step as completed
+    document.querySelectorAll('.step').forEach(function(step) {
+      var boxes = step.querySelectorAll('.check-row input[type="checkbox"]');
+      if (boxes.length > 0) {
+        var allChecked = Array.prototype.every.call(boxes, function(b) { return b.checked; });
+        if (allChecked) {
+          step.classList.add('completed');
+        } else {
+          step.classList.remove('completed');
+        }
+      }
+    });
+  }
+
+  // Auto-open first step in each tab for discoverability
+  document.querySelectorAll('.tab-content').forEach(function(tab) {
+    var first = tab.querySelector('.step');
+    if (first) first.classList.add('open');
+  });
+</script>
+
+</body>
+</html>
